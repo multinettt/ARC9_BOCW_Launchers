@@ -1,0 +1,13 @@
+"VertexlitGeneric"
+{
+	"$basetexture" "models\weapons\arc9\bocw\bocw_cigma2\mtl_t9_launcher_standard_decals_c"
+	"$bumpmap" "models\weapons\arc9\bocw\bocw_cigma2\mtl_t9_launcher_standard_decals_n"
+	"$translucent" "1"
+
+	"$phong" "1"
+	"$phongexponenttexture" "models\weapons\arc9\bocw\bocw_cigma2\g"
+	"$phongboost" "1"
+	"$phongalbedotint" "1"
+
+	"$normalmapalphaenvmapmask" "1"
+}

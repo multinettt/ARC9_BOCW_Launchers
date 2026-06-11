@@ -8,7 +8,7 @@
 
 --   BASE  : ARC9
 --   BUILD : v2026.6
---   SR.NO : 
+--   SR.NO : 326278
 
 
   .oooooo.    o8o                                              .oooo.   
@@ -94,7 +94,7 @@ SWEP.DamageType = DMG_BULLET -- The damage type of the gun.
 -- DMG_BURN will ignite the target.
 -- DMG_AIRBOAT will damage Combine Hunter-Choppers.
 
-SWEP.ArmorPiercing = 0.5 -- Between 0-1. A proportion of damage that is done as direct damage, ignoring protection.
+SWEP.ArmorPiercing = 1 -- Between 0-1. A proportion of damage that is done as direct damage, ignoring protection.
 
 SWEP.HeadshotDamage = 1
 SWEP.ChestDamage = 1
@@ -121,7 +121,7 @@ SWEP.PhysBulletDontInheritPlayerVelocity = false -- Set to true to disable "Brow
 -------------------------- ENTITY LAUNCHING
 
 SWEP.ShootEnt = "arc9_bocw_cigma2_projectile" -- Set to an entity to launch it out of this weapon.
-SWEP.ShootEntForce = 10000
+SWEP.ShootEntForce = 100000
 SWEP.ShootEntInheritPlayerVelocity = true -- Set to true to inherit velocity
 
 -------------------------- TRACERS
@@ -134,7 +134,7 @@ SWEP.TracerSize = 0.5
 
 -------------------------- MAGAZINE
 
-SWEP.Ammo = "xbowbolt" -- What ammo type this gun uses.
+SWEP.Ammo = "RPG_Round" -- What ammo type this gun uses.
 
 SWEP.ChamberSize = 0 -- The amount of rounds this gun can chamber.
 SWEP.ClipSize = 1 -- Self-explanatory.
@@ -148,22 +148,12 @@ SWEP.InfiniteAmmo = false -- Weapon does not take from reserve ammo
 SWEP.BottomlessClip = false -- Weapon never has to reload
 
 SWEP.ReloadWhileSprint = true -- This weapon can reload while the user is sprinting.
-SWEP.ReloadInSights = true -- This weapon can aim down sights while reloading.
+SWEP.ReloadInSights = false -- This weapon can aim down sights while reloading.
 
 SWEP.CanFireUnderwater = false -- This weapon can shoot while underwater.
 
 SWEP.ShouldDropMag = false
 SWEP.ShouldDropMagEmpty = false
-
-SWEP.DropMagazineModel = "models/weapons/arc9/atts/bocw_cigma2_magazine.mdl" -- Set to a string or table to drop this magazine when reloading.
-SWEP.DropMagazineSounds = {} -- Table of sounds a dropped magazine should play.
-SWEP.DropMagazineAmount = 1 -- Amount of mags to drop.
-SWEP.DropMagazineSkin = 0 -- Model skin of mag.
-SWEP.DropMagazineTime = 2
-SWEP.DropMagazineQCA = nil -- QC Attachment drop mag from, would drop from shell port if not defined
-SWEP.DropMagazinePos = Vector(-40, -30, 5) -- offsets
-SWEP.DropMagazineAng = Angle(0, -90, 0)
-SWEP.DropMagazineVelocity = Vector(-200, -200, 0) -- Put something here if your anim throws the mag with force
 
 -------------------------- FIREMODES
 
@@ -240,7 +230,7 @@ SWEP.RestoreBreathTime = 4
 
 SWEP.FreeAimRadiusSights = 0
 
-SWEP.AimDownSightsTime = 0.217 -- How long it takes to go from hip fire to aiming down sights.
+SWEP.AimDownSightsTime = 0.4 -- How long it takes to go from hip fire to aiming down sights.
 SWEP.SprintToFireTime = 0.4 -- How long it takes to go from sprinting to being able to fire.
 
 SWEP.ShootWhileSprint = false
@@ -360,7 +350,7 @@ SWEP.BobSprintMult = 0.1
 -------------------------- VISUALS
 
 SWEP.BulletBones = { -- the bone that represents bullets in gun/mag
-    "tag_bullet_animate"
+    "tag_bullet_deplete_sqtl_00_animate"
 }
 SWEP.CaseBones = {}
 -- Unlike BulletBones, these bones are determined by the missing bullet amount when reloading
@@ -374,7 +364,6 @@ SWEP.CaseBGs = {}
 SWEP.StripperClipBGs = {}
 
 SWEP.HideBones = {
-    "tag_arrow_animate"
 } -- bones to hide in third person and customize menu. {"list", "of", "bones"}
 SWEP.ReloadHideBoneTables = {
 }
@@ -433,8 +422,8 @@ SWEP.SightMidPoint = {
 
 -- Position for customizing
 SWEP.CustomizeAng = Angle(90, 0, 0)
-SWEP.CustomizePos = Vector(7, 38, 3)
-SWEP.CustomizeRotateAnchor = Vector(7, 0, -4)
+SWEP.CustomizePos = Vector(-6.5, 40, 5)
+SWEP.CustomizeRotateAnchor = Vector(-6, 0, 2)
 
 SWEP.CustomizeSnapshotFOV = 70
 SWEP.CustomizeSnapshotPos = Vector(4, 10, 0)
@@ -449,7 +438,7 @@ SWEP.PeekAng = Angle(0, 0.4, -35)
 
 -------------------------- HoldTypes
 
-SWEP.HoldType = "ar2"
+SWEP.HoldType = "rpg"
 SWEP.HoldTypeSprint = "passive"
 SWEP.HoldTypeHolstered = nil
 SWEP.HoldTypeSights = "smg"
@@ -469,11 +458,6 @@ SWEP.AnimMelee = ACT_GMOD_GESTURE_MELEE_SHOVE_2HAND
 SWEP.DefaultElements = {}
 
 SWEP.AttachmentElements = {
-    ["optic_mount"] = {
-        Bodygroups = {
-            {1, 1},
-        }
-    },
 }
 
 -- Use to override attachment table entry data.
@@ -493,12 +477,13 @@ SWEP.DuplicateAttachments = true
 SWEP.Attachments = {
     {
         PrintName = "OPTIC",
-        Bone = "tag_weapon",
-        Pos = Vector(5, 0, 4.39),
+        Bone = "tag_sights_animate",
+        Pos = Vector(0, 0, 0),
         Ang = Angle(0, 0, 0),
         Icon_Offset = Vector(0, 0, 0),
-        Category = {"optic_picatinny"},
-        InstalledElements = {"optic_mount"},
+        Category = {"bocw_cigma2_optic"},
+        Installed = "bocw_optic_cigma2",
+        Integral = "bocw_optic_cigma2",
     },
     {
         PrintName = "CAMO",
@@ -535,6 +520,12 @@ if CustomSlotCvar:GetBool() then
     table.insert(SWEP.Attachments, CustomSlotTable)
 end
 --=========================================================
+
+SWEP.HookP_BlockFire = function(self)
+    return self:GetSightAmount() < 1
+end
+
+SWEP.HookC_CanLockOn = function(self, ent) return true end -- Return true to allow lock on.
 
 SWEP.Hook_TranslateAnimation = function(swep, anim)
     local elements = swep:GetElements()
@@ -577,9 +568,9 @@ SWEP.Animations = {
     ["ready"] = {
         Source = {"ready"},
         EventTable = {
-            { s = "ARC9_BOCW.Cigma2_ready_start", t = 0 },
-            { s = "ARC9_BOCW.Cigma2_ready_load", t = 0.4 },
-            { s = "ARC9_BOCW.Cigma2_ready_end", t = 0.8 },
+            { s = "ARC9_BOCW.Cigma2_ready_part1", t = 0 },
+            { s = "ARC9_BOCW.Cigma2_ready_part2", t = 0.4 },
+            { s = "ARC9_BOCW.Cigma2_ready_part3", t = 0.8 },
         },
     },
     ["bash"] = {
@@ -593,28 +584,24 @@ SWEP.Animations = {
     },
     ["reload"] = {
         Source = "reload",
-        Time = 2.58,
+        Time = 2.5,
         NoMagSwap = true,
-        MinProgress = 0.65,
+        MinProgress = 0.8,
         EventTable = {
-            { s = "ARC9_BOCW.Cigma2_reload_start", t = 0 },
-            { s = "ARC9_BOCW.Cigma2_reload_pullstring", t = 0.3 },
-            { s = "ARC9_BOCW.Cigma2_reload_loadstart", t = 1.3 },
-            { s = "ARC9_BOCW.Cigma2_reload_load", t = 1.6 },
-            { s = "ARC9_BOCW.Cigma2_reload_end", t = 1.9 },
+            { s = "ARC9_BOCW.Cigma2_reload_part1", t = 0 },
+            { s = "ARC9_BOCW.Cigma2_reload_part2", t = 0.9 },
+            { s = "ARC9_BOCW.Cigma2_reload_end", t = 1.4 },
         },
     },
     ["reload_empty"] = {
-        Source = "reload_empty",
-        Time = 2.58,
+        Source = "reload",
+        Time = 2.5,
         NoMagSwap = true,
-        MinProgress = 0.65,
+        MinProgress = 0.8,
         EventTable = {
-            { s = "ARC9_BOCW.Cigma2_reload_start", t = 0 },
-            { s = "ARC9_BOCW.Cigma2_reload_pullstring", t = 0.3 },
-            { s = "ARC9_BOCW.Cigma2_reload_loadstart", t = 1.3 },
-            { s = "ARC9_BOCW.Cigma2_reload_load", t = 1.6 },
-            { s = "ARC9_BOCW.Cigma2_reload_end", t = 1.9 },
+            { s = "ARC9_BOCW.Cigma2_reload_part1", t = 0 },
+            { s = "ARC9_BOCW.Cigma2_reload_part2", t = 0.9 },
+            { s = "ARC9_BOCW.Cigma2_reload_end", t = 1.4 },
         },
     },
     ["enter_sprint"] = {
@@ -650,17 +637,7 @@ SWEP.Animations = {
     ["enter_inspect"] = {
         Source = "inspect",
         EventTable = {
-            { s = "ARC9_BOCW.Cigma2_inspect_part1", t = 0 },
-            { s = "ARC9_BOCW.Cigma2_inspect_part2", t = 2.2 },
-            { s = "ARC9_BOCW.Cigma2_inspect_part3", t = 4.9 },
-        },
-    },
-    ["enter_inspect_empty"] = {
-        Source = "inspect_empty",
-        EventTable = {
-            { s = "ARC9_BOCW.Cigma2_inspect_part1", t = 0 },
-            { s = "ARC9_BOCW.Cigma2_inspect_part2", t = 2.2 },
-            { s = "ARC9_BOCW.Cigma2_inspect_part3", t = 4.9 },
+            { s = "ARC9_BOCW.Cigma2_inspect", t = 0 },
         },
     },
 }
