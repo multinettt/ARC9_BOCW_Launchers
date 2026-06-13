@@ -139,6 +139,22 @@ sound.Add({
     volume = 1.0,
     sound = "weapons/arc9/bocw_rpg7/rpg7_inspect.wav"
 })
+
+-- PULLOUT PUTAWAY
+
+sound.Add({
+    name = "ARC9_BOCW.RPG7_draw",
+    channel = CHAN_AUTO,
+    volume = 1.0,
+    sound = "weapons/arc9/bocw_rpg7/rpg7_draw.wav"
+})
+
+sound.Add({
+    name = "ARC9_BOCW.RPG7_holster",
+    channel = CHAN_AUTO,
+    volume = 1.0,
+    sound = "weapons/arc9/bocw_rpg7/rpg7_holster.wav"
+})
 -----------------------------------------------
 -- FIRING SOUNDS
 sound.Add({ -- BLACK OPS COLD WAR
