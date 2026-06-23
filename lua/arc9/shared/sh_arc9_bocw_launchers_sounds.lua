@@ -81,6 +81,22 @@ sound.Add({
     sound = "weapons/arc9/bocw_cigma2/cigma2_holster.wav"
 })
 
+-- LOCK ON
+
+sound.Add({
+    name = "ARC9_BOCW.Cigma2_locking",
+    channel = CHAN_AUTO,
+    volume = 0.4,
+    sound = "weapons/arc9/bocw_cigma2/cigma2_locking.wav"
+})
+
+sound.Add({
+    name = "ARC9_BOCW.Cigma2_lockon",
+    channel = CHAN_AUTO,
+    volume = 1.0,
+    sound = "weapons/arc9/bocw_cigma2/cigma2_lockon.wav"
+})
+
 -----------------------------------------------
 -- FIRING SOUNDS
 sound.Add({ -- BLACK OPS COLD WAR

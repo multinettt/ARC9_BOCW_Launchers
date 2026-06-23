@@ -426,8 +426,8 @@ SWEP.CustomizePos = Vector(-6.5, 40, 5)
 SWEP.CustomizeRotateAnchor = Vector(-6, 0, 2)
 
 SWEP.CustomizeSnapshotFOV = 70
-SWEP.CustomizeSnapshotPos = Vector(4, 10, 0)
-SWEP.CustomizeSnapshotAng = Angle(0, 0, 0)
+SWEP.CustomizeSnapshotPos = Vector(6, 22, -3)
+SWEP.CustomizeSnapshotAng = Angle(0, 0, 17)
 SWEP.CustomizeNoRotate = false
 
 SWEP.BipodPos = Vector(0, 4, -4)
@@ -522,13 +522,139 @@ end
 --=========================================================
 
 SWEP.HookP_BlockFire = function(self)
-    return self:GetSightAmount() < 1
+    --bash doesnt work with this
+    --return self:GetSightAmount() < 1
 end
 
-SWEP.HookC_CanLockOn = function(self, ent) return true end -- Return true to allow lock on.
+-- This following code is taken and adapted pretty much directly from Palindrone's
+-- black ops pack. I thought built-in ARC9 lock on would be fine but it is surprising
+-- how terrible it is. If he's not ok with this inclusion thats fine ill remove it
+-- but im genuinely running out of time and need to get these launchers out the door
 
-SWEP.Hook_TranslateAnimation = function(swep, anim)
-    local elements = swep:GetElements()
+SWEP.Hook_GetShootEntData = function(self, data)
+    local tracktime = math.Clamp((CurTime() - self.StartTrackTime) / self.LockTime, 0, 1)
+
+    if tracktime >= 1 and self.TargetEntity and IsValid(self.TargetEntity) then
+        data.Target = self.TargetEntity
+    end
+end
+
+SWEP.NextBeepTime = 0
+SWEP.TargetEntity = nil
+SWEP.StartTrackTime = 0
+SWEP.LockTime = 1
+
+SWEP.Hook_Think = function(self)
+    if self:GetSightAmount() >= 1 then
+
+        if self.NextBeepTime > CurTime() then return end
+
+        local tracktime = math.Clamp((CurTime() - self.StartTrackTime) / self.LockTime, 0, 2)
+
+        -- if CLIENT then
+        if tracktime >= 1 and self.TargetEntity then
+            if CLIENT then
+                self:EmitSound("ARC9_BOCW.Cigma2_lockon")
+            end
+            self.NextBeepTime = CurTime() + 0.2
+        else
+            if CLIENT then
+                self:EmitSound("ARC9_BOCW.Cigma2_locking")
+            end
+            self.NextBeepTime = CurTime() + 0.2
+        end
+        -- end
+
+        local targets = ents.GetAll()
+
+        local best = nil
+        local targetscore = 0
+
+        for _, ent in ipairs(targets) do
+            -- if ent:Health() <= 0 then continue end
+            -- if !(ent:IsPlayer() or ent:IsNPC() or ent:GetOwner():IsValid()) then continue end
+            if ent:IsWorld() then continue end
+            if ent == self:GetOwner() then continue end
+            if ent.IsProjectile then continue end
+            if ent.UnTrackable then continue end
+            local dot = (ent:GetPos() - self:GetShootPos()):GetNormalized():Dot(self:GetShootDir():Forward())
+
+            if math.deg(math.acos(dot)) > 10 then continue end
+
+            local entscore = 1
+
+            if ent:IsPlayer() then entscore = entscore + 15 end
+            if ent:IsNPC() then entscore = entscore + 10 end
+            if ent:IsVehicle() then entscore = entscore + 25 end
+            if ent:Health() > 0 then entscore = entscore + 5 end
+            if ent.IsAirAsset then entscore = entscore + 100 end
+
+            entscore = entscore + (dot * 2.5)
+
+            entscore = entscore + (ent.ARC9TrackingScore or 0)
+
+            if entscore > targetscore then
+                -- local tr = util.TraceLine({
+                --     start = self:GetShootPos(),
+                --     endpos = ent:GetPos(),
+                --     filter = self:GetOwner(),
+                --     mask = MASK_VISIBLE_AND_NPCS
+                -- })
+
+                -- PrintTable(tr)
+
+                -- if tr.Entity == ent then
+                best = ent
+                bestang = dot
+                targetscore = entscore
+                -- end
+            end
+        end
+
+        if not best then self.TargetEntity = nil return end
+
+        local aa, bb = best:WorldSpaceAABB()
+        local vol = math.abs(bb.x - aa.x) * math.abs(bb.y - aa.y) * math.abs(bb.z - aa.z)
+        -- local dimx = (bb.x - aa.x) / 2
+        -- local dimy = (bb.y - aa.y) / 2
+        -- local dimz = (bb.z - aa.z) / 2
+
+        clutter = math.max(1000 - (vol / 1000), 128)
+
+        -- local dimx = clutter / 50
+        -- local dimy = clutter / 50
+        -- local dimz = clutter / 100
+
+        local tr2 = util.TraceLine({
+            start = self:GetShootPos(),
+            endpos = best:GetPos() + (self:GetShootDir():Forward() * clutter),
+            filter = self:GetOwner(),
+            mask = MASK_NPCWORLDSTATIC,
+            -- maxs = Vector(-dimx, -dimy, -dimz),
+            -- mins = Vector(dimx, dimy, dimz),
+        })
+
+        local tr3 = util.TraceLine({
+            start = self:GetShootPos(),
+            endpos = best:GetPos() + Vector(0, 0, -clutter),
+            filter = self:GetOwner(),
+            mask = MASK_NPCWORLDSTATIC,
+            -- maxs = Vector(-dimx, -dimy, -dimz),
+            -- mins = Vector(dimx, dimy, dimz),
+        })
+
+        -- -- Too much ground clutter
+        if tr2.Hit and not tr2.HitSky then return end
+        if tr3.Hit and not tr3.HitSky then return end
+
+        if not self.TargetEntity then
+            self.StartTrackTime = CurTime()
+        end
+
+        self.TargetEntity = best
+    else
+        self.TargetEntity = nil
+    end
 end
 
 SWEP.Animations = {

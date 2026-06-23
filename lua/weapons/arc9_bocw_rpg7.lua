@@ -77,21 +77,12 @@ SWEP.ViewModelFOVBase = 70
 
 -------------------------- DAMAGE PROFILE
 
-SWEP.DamageMax = 68 -- Damage done at point blank range
-SWEP.DamageMin = 49 -- Damage done at maximum range
-
-SWEP.DamageRand = 1 -- Damage varies randomly per shot by this fraction. 0.1 = +- 10% damage per shot.
-
-SWEP.RangeMin = 50.8 * 39.37 -- How far bullets retain their maximum damage for.
-SWEP.RangeMax = 400 * 39.37 -- In Hammer units, how far bullets can travel before dealing DamageMin.
-SWEP.Distance = 1200 * 39.37 -- In Hammer units, how far bullets can travel, period.
-
 SWEP.Num = 1 -- Number of bullets to shoot
 -- Bear in mind: Damage is divided by Num
 
 SWEP.Penetration = 10 -- Units of wood that can be penetrated by this gun.
 
-SWEP.DamageType = DMG_BULLET -- The damage type of the gun.
+SWEP.DamageType = DMG_BLAST -- The damage type of the gun.
 -- DMG_BLAST will create explosive effects and create AOE damage.
 -- DMG_BURN will ignite the target.
 -- DMG_AIRBOAT will damage Combine Hunter-Choppers.
@@ -116,23 +107,11 @@ SWEP.BodyDamageMults = {
 
 SWEP.AlwaysPhysBullet = true
 
-SWEP.PhysBulletMuzzleVelocity = 625 * 39.37
-SWEP.PhysBulletDrag = 1
-SWEP.PhysBulletDontInheritPlayerVelocity = false -- Set to true to disable "Browning Effect"
-
 -------------------------- ENTITY LAUNCHING
 
 SWEP.ShootEnt = "arc9_bocw_rpg7_projectile" -- Set to an entity to launch it out of this weapon.
-SWEP.ShootEntForce = 100000
+SWEP.ShootEntForce = 10000
 SWEP.ShootEntInheritPlayerVelocity = true -- Set to true to inherit velocity
-
--------------------------- TRACERS
-
-SWEP.TracerNum = 0 -- Tracer every X
-SWEP.TracerFinalMag = 0 -- The last X bullets in a magazine are all tracers
-SWEP.TracerEffect = "ARC9_tracer" -- The effect to use for hitscan tracers
-SWEP.TracerColor = Color(255, 200, 200)
-SWEP.TracerSize = 0.5
 
 -------------------------- MAGAZINE
 
@@ -155,7 +134,6 @@ SWEP.ReloadInSights = false -- This weapon can aim down sights while reloading.
 SWEP.CanFireUnderwater = false -- This weapon can shoot while underwater.
 
 SWEP.ShouldDropMag = false
-SWEP.ShouldDropMagEmpty = false
 
 -------------------------- FIREMODES
 
@@ -225,7 +203,7 @@ SWEP.NPCWeight = 50
 SWEP.FreeAimRadius = 0 -- In degrees, how much this gun can free aim in hip fire.
 SWEP.Sway = 1 -- How much the gun sways.
 SWEP.SwayMultHipFire = 0 -- How much the gun sways.
-SWEP.SwayMultSights = 0
+SWEP.SwayMultSights = 0.2
 
 SWEP.HoldBreathTime = 5 -- time that you can hold breath for
 SWEP.RestoreBreathTime = 4
@@ -398,8 +376,6 @@ SWEP.IronSights = {
     CrosshairInSights = false,
 }
 
-SWEP.MagnificationZoomSpeed = 20
-
 SWEP.HasSights = true
 
 SWEP.ActivePos = Vector(0, -1.2, 0)
@@ -429,8 +405,8 @@ SWEP.CustomizePos = Vector(7.3, 45, 5)
 SWEP.CustomizeRotateAnchor = Vector(6, 0, -5)
 
 SWEP.CustomizeSnapshotFOV = 70
-SWEP.CustomizeSnapshotPos = Vector(4, 10, 0)
-SWEP.CustomizeSnapshotAng = Angle(0, 0, 0)
+SWEP.CustomizeSnapshotPos = Vector(2, 22, -3)
+SWEP.CustomizeSnapshotAng = Angle(0, 0, 11)
 SWEP.CustomizeNoRotate = false
 
 SWEP.BipodPos = Vector(0, 4, -4)
@@ -515,7 +491,7 @@ end
 --=========================================================
 
 SWEP.HookP_BlockFire = function(self)
-    return self:GetSightAmount() < 1
+    return not self:GetInSights()
 end
 
 SWEP.Hook_TranslateAnimation = function(swep, anim)
@@ -565,21 +541,19 @@ SWEP.Animations = {
     ["bash"] = {
         Source = "melee",
     },
-    ["bash_empty"] = {
-        Source = "melee_empty",
-    },
     ["fire"] = {
         Source = {"fire"},
     },
     ["reload"] = {
         Source = "reload",
         Time = 2.77,
-        NoMagSwap = true,
+        NoMagSwap = false,
         MinProgress = 0.8,
+        MagSwapTime = 0.1,
         EventTable = {
-            { s = "ARC9_BOCW.RPG7_reload_part1", t = 0 },
-            { s = "ARC9_BOCW.RPG7_reload_part2", t = 0.9 },
-            { s = "ARC9_BOCW.RPG7_reload_end", t = 1.4 },
+            { s = "ARC9_BOCW.RPG7_reload_load", t = 0.1 },
+            { s = "ARC9_BOCW.RPG7_reload_twist", t = 1.4 },
+            { s = "ARC9_BOCW.RPG7_reload_end", t = 2 },
         },
     },
     ["reload_empty"] = {

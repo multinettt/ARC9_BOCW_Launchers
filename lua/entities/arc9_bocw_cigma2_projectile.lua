@@ -1,3 +1,5 @@
+-- Credit Palindrone for the lock-on code read the thing in shared lua for more info
+
 ENT.Type = "anim"
 ENT.Base = "base_anim"
 ENT.PrintName = "Cigma 2 Rocket (BOCW)"
@@ -9,8 +11,22 @@ ENT.Ticks = 0
 ENT.CollisionGroup = COLLISION_GROUP_PROJECTILE
 ENT.CanPickup = false
 
-ENT.Damage = 500
+ENT.Damage = 1000
 ENT.Radius = 256
+
+ENT.LifeTime = 60
+ENT.SteerSpeed = 60
+ENT.SeekerAngle = math.cos(35)
+ENT.FireAndForget = true
+ENT.Drunkenness = 2
+ENT.SuperSeeker = false --probly not right this shit is old as hell
+ENT.TopAttack = false
+ENT.NoReacquire = false --this could make funny clips so keeping it false
+
+ENT.GunshipWorkaround = true
+ENT.HelicopterWorkaround = true
+
+ENT.ShootEntData = {}
 
 if CLIENT then
     killicon.Add("arc9_bocw_cigma2_projectile", "entities/obit_arc9_bocw_cigma2.png", Color(255, 255, 255, 255))
@@ -18,6 +34,8 @@ end
 
 if SERVER then
     AddCSLuaFile()
+
+    local gunship = {["npc_combinegunship"] = true, ["npc_combinedropship"] = true}
 
     function ENT:Initialize()
         self:SetModel("models/weapons/arc9/entities/bocw_cigma2_projectile.mdl")
@@ -47,9 +65,62 @@ if SERVER then
     function ENT:Think()
         if self.Defused then return end
 
+        if self.SpawnTime + self.LifeTime < CurTime() then
+            self:Detonate()
+            return
+        end
+
         if self:WaterLevel() > 0 then
             self:Detonate()
             return
+        end
+
+        local drunk = false
+
+        if self.FireAndForget then
+            if self.ShootEntData.Target and IsValid(self.ShootEntData.Target) then
+                local target = self.ShootEntData.Target
+                if target.UnTrackable then self.ShootEntData.Target = nil end
+
+                local tpos = target:EyePos()
+                if self.TopAttack and not self.TopAttackReached then
+                    tpos = tpos + Vector(0, 0, self.TopAttackHeight)
+
+                    local dist = (tpos - self:GetPos()):Length()
+
+                    if dist <= 2000 then
+                        self.TopAttackReached = true
+                        self.SuperSteerTime = CurTime() + self.SuperSteerBoostTime
+                    end
+                end
+                local dir = (tpos - self:GetPos()):GetNormalized()
+                local dot = dir:Dot(self:GetAngles():Forward())
+                local ang = dir:Angle()
+
+                if self.SuperSeeker or dot >= self.SeekerAngle or not self.TopAttackReached or (self.SuperSteerTime and self.SuperSteerTime >= CurTime()) then
+                    local p = self:GetAngles().p
+                    local y = self:GetAngles().y
+
+                    p = math.ApproachAngle(p, ang.p, FrameTime() * self.SteerSpeed)
+                    y = math.ApproachAngle(y, ang.y, FrameTime() * self.SteerSpeed)
+
+                    self:SetAngles(Angle(p, y, 0))
+                    -- self:SetVelocity(dir * 15000)
+                elseif self.NoReacquire then
+                    self.ShootEntData.Target = nil
+                    drunk = true
+                end
+            end
+        end
+
+        if drunk then
+            self:GetPhysicsObject():AddAngleVelocity(VectorRand() * FrameTime() * 1500)
+            --self:SetAngles(self:GetAngles() + (AngleRand() * FrameTime() * 1000 / 360))
+        end
+
+        if self.Drunkenness > 0 then
+            self:GetPhysicsObject():AddAngleVelocity(VectorRand() * FrameTime() * self.Drunkenness)
+            --self:SetAngles(self:GetAngles() + (AngleRand() * FrameTime() * self.Drunkenness / 360))
         end
 
         if self.BoostTime + self.SpawnTime > CurTime() then
@@ -61,14 +132,25 @@ if SERVER then
         end
 
         local v = self:GetVelocity()
-        if v:Length() >= 583 then
+        if v:Length() >= 1000 then
             self:SetAngles(v:Angle())
             self:GetPhysicsObject():SetVelocityInstantaneous(v)
         end
 
-        self:NextThink(CurTime() + 0.03)
-
-        return true
+        -- Gunships have no physics collection, periodically trace to try and blow up in their face
+        if self.GunshipWorkaround and (self.GunshipCheck or 0 < CurTime()) then
+            self.GunshipCheck = CurTime() + 0.33
+            local tr = util.TraceLine({
+                start = self:GetPos(),
+                endpos = self:GetPos() + (self:GetVelocity() * 6 * engine.TickInterval()),
+                filter = self,
+                mask = MASK_SHOT
+            })
+            if IsValid(tr.Entity) and gunship[tr.Entity:GetClass()] then
+                self:SetPos(tr.HitPos)
+                self:Detonate()
+            end
+        end
     end
 
     function ENT:Detonate() -- taken and adapted from arc9_bo1_projectile_base.lua, credit Palindrone i think
@@ -94,6 +176,8 @@ if SERVER then
     end
 
     function ENT:PhysicsCollide(data, physobj)
+        if not self:IsValid() then return end
+
         if self.Stuck then return end
         self.Stuck = true
         self.OldVelocity = data.OurOldVelocity
@@ -108,6 +192,14 @@ if SERVER then
 
         self:Detonate()
     end
+
+    -- Combine Helicopters are hard-coded to only take DMG_AIRBOAT damage
+    hook.Add("EntityTakeDamage", "ARC9_HelicopterWorkaround", function(ent, dmginfo)
+        if IsValid(ent:GetOwner()) and ent:GetOwner():GetClass() == "npc_helicopter" then ent = ent:GetOwner() end
+        if ent:GetClass() == "npc_helicopter" and dmginfo:GetInflictor().HelicopterWorkaround then
+            dmginfo:SetDamageType(bit.bor(dmginfo:GetDamageType(), DMG_AIRBOAT))
+        end
+    end)
 end
 
 function ENT:Draw()
