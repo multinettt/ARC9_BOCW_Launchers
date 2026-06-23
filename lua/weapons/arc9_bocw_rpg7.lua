@@ -491,11 +491,8 @@ end
 --=========================================================
 
 SWEP.HookP_BlockFire = function(self)
-    return not self:GetInSights()
-end
-
-SWEP.Hook_TranslateAnimation = function(swep, anim)
-    local elements = swep:GetElements()
+    --bash doesnt work with this ill probly make this an option
+    --return not self:GetInSights()
 end
 
 SWEP.Animations = {
@@ -512,18 +509,6 @@ SWEP.Animations = {
     },
     ["exit_sights"] = {
         Source = "ads_out",
-        Time = 1,
-    },
-    ["enter_sights_empty"] = {
-        Source = "ads_in_empty",
-        Time = 1,
-    },
-    ["idle_sights_empty"] = {
-        Source = "idle_empty",
-        Time = 1,
-    },
-    ["exit_sights_empty"] = {
-        Source = "ads_out_empty",
         Time = 1,
     },
     ["draw"] = {
@@ -580,21 +565,6 @@ SWEP.Animations = {
     },
     ["exit_sprint"] = {
         Source = "sprint_out",
-        Time = 0.4,
-        NoStatAffectors = true
-    },
-    ["enter_sprint_empty"] = {
-        Source = "supersprint_in_empty",
-        Time = 0.75,
-        NoStatAffectors = true
-    },
-    ["idle_sprint_empty"] = {
-        Source = "sprint_loop_empty",
-        Time = 2,
-        NoStatAffectors = true
-    },
-    ["exit_sprint_empty"] = {
-        Source = "sprint_out_empty",
         Time = 0.4,
         NoStatAffectors = true
     },

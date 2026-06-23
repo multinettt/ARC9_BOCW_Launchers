@@ -523,7 +523,7 @@ end
 
 SWEP.HookP_BlockFire = function(self)
     --bash doesnt work with this
-    --return self:GetSightAmount() < 1
+    --return not self:GetInSights()
 end
 
 -- This following code is taken and adapted pretty much directly from Palindrone's
